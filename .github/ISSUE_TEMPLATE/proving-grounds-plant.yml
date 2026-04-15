@@ -1,0 +1,141 @@
+name: "Proving Grounds Plant"
+description: "Submit a structural problem for the Proving Grounds. Logic first. No rhetoric."
+title: "[Proving Grounds] "
+labels: ["proving-grounds"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## The Alpha-Omega Lens Applies Here
+
+        This template enforces structure-before-belief. Every field maps to the 6-point Alpha-Omega evaluation protocol. If you can't fill a field, your plant isn't ready.
+
+        **The lens will score this. Rhetoric will be identified and flagged. If your argument relies on persuasion instead of logic, it will be consumed.**
+
+  - type: dropdown
+    id: biome-layer
+    attributes:
+      label: "Biome Layer"
+      description: "What scope does this problem operate at?"
+      options:
+        - "Biosphere — National / Global"
+        - "Forest — City / Region"
+        - "Grove — Community / Organization"
+        - "Plot — Street / Block"
+    validations:
+      required: true
+
+  - type: textarea
+    id: structural-claim
+    attributes:
+      label: "Structural Claim"
+      description: "State the structural problem as a mechanism, not an opinion. What system produces what outcome through what process? No adjectives. No moral judgments. Just the mechanism."
+      placeholder: |
+        Example: "The 2001 AUMF authorized permanent, global war authority with no sunset clause. Three presidents used this single vote to operate in 22 countries over 24 years without returning to Congress."
+
+        NOT: "The government is corrupt and wages illegal wars."
+    validations:
+      required: true
+
+  - type: textarea
+    id: verifiable-evidence
+    attributes:
+      label: "Verifiable Evidence (SEE — Input Discipline)"
+      description: "What observable data or verifiable facts support this claim? Cite specific numbers, dates, documents, or studies. Separate observation from interpretation. Every claim needs a source."
+      placeholder: |
+        List specific evidence with sources:
+        - [Source name](URL) — What it shows
+        - [Source name](URL) — What it shows
+
+        If you can't cite a source, it's hearsay. The lens will catch it.
+    validations:
+      required: true
+
+  - type: textarea
+    id: mechanism
+    attributes:
+      label: "Causal Mechanism (HEAR — Mechanism Discipline)"
+      description: "What causal mechanism produces this outcome? Is it testable? Could you design an experiment or observation to verify it? If you can't describe the mechanism, you're describing a symptom, not a problem."
+      placeholder: |
+        Example: "Congress votes once → president acquires permanent war authority → no subsequent vote required → no political cost for military action → executive determines targets with zero oversight."
+
+        The mechanism must be a chain of cause and effect, not a narrative.
+    validations:
+      required: true
+
+  - type: textarea
+    id: testable-question
+    attributes:
+      label: "Testable Question (FALSIFIABILITY)"
+      description: "State a question that could prove your claim wrong. If your claim can't be proven wrong, it's rhetoric, not argument. The question must have a measurable answer."
+      placeholder: |
+        Example: "If the 2001 AUMF were repealed with no replacement, would the number of countries with active U.S. military operations decrease within 12 months?"
+
+        If you can't write this, your claim is unfalsifiable.
+    validations:
+      required: true
+
+  - type: textarea
+    id: rhetoric-flags
+    attributes:
+      label: "Self-Identified Rhetoric Flags"
+      description: "Flag your own rhetoric BEFORE the lens does. What loaded language, emotional appeals, moral judgments, or persuasion techniques did you use? If you say 'none,' the lens will check."
+      placeholder: |
+        Be honest. Examples of rhetoric to flag:
+        - Loaded titles ("The Lie," "The Machine," "Corruption")
+        - Motive attribution ("they did it because...")
+        - Emotional shortcuts ("what a joke," "absolute failure")
+        - Nostalgia appeals ("it used to work," "the founders intended")
+        - Scope creep (bundling 3 problems under 1 frame)
+    validations:
+      required: true
+
+  - type: textarea
+    id: operational-meaning
+    attributes:
+      label: "Operational Meaning (SPEAK — Output Discipline)"
+      description: "What concrete, testable real-world implication does this claim have? If this problem were solved, what measurably changes? If nothing measurably changes, the claim has no operational meaning."
+      placeholder: |
+        Example: "If supplemental military funding were subject to budget caps, total military spending would either decrease, remain flat, or increase — each outcome is measurable and falsifies a different hypothesis."
+    validations:
+      required: true
+
+  - type: textarea
+    id: alpha-omega-self-score
+    attributes:
+      label: "Alpha-Omega Self-Score (Optional)"
+      description: "Score your own plant honestly. The AI will score it too — and the two scores will be compared."
+      placeholder: |
+        | Dimension | Score (0.0–1.0) | Notes |
+        |---|---|---|
+        | Logic | | |
+        | Rhetoric | | (higher = worse) |
+        | Nostalgia | | (higher = worse) |
+        | Emotional Appeal | | (flag, not auto-negative) |
+        | Novelty | | |
+        | Verifiability | | |
+        | Scope | | |
+
+  - type: textarea
+    id: sources
+    attributes:
+      label: "Sources"
+      description: "Every source cited in the evidence section, with full URLs. No 'trust me' allowed."
+      placeholder: |
+        - [Source Name](https://full-url)
+        - [Source Name](https://full-url)
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: pre-plant-checklist
+    attributes:
+      label: "Pre-Plant Checklist (Three Monkeys Gate)"
+      description: "Confirm your plant passes all three gates."
+      options:
+        - label: "SEE NO EVIL — My claims are based on verifiable observation, not hearsay or fabrication"
+          required: true
+        - label: "HEAR NO EVIL — My mechanism is grounded in testable logic, not conspiracy or unfalsifiable claims"
+          required: true
+        - label: "SPEAK NO EVIL — This serves signal, not noise — it's not venting, ad hominem, or spam"
+          required: true

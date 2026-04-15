@@ -1,0 +1,40 @@
+name: "Dev Ticket"
+description: "Technical implementation task for SVN development"
+title: "[Dev] "
+labels: ["phase-2"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: "Structural Problem"
+      description: "What structural problem does this ticket solve? Not 'what feature do we want' — what breaks without it?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: build
+    attributes:
+      label: "What to Build"
+      description: "Specific implementation requirements. Data models, API endpoints, architecture decisions."
+    validations:
+      required: true
+
+  - type: textarea
+    id: testable-outcome
+    attributes:
+      label: "Testable Outcome"
+      description: "How do we know this is done? Measurable, falsifiable success criteria."
+    validations:
+      required: true
+
+  - type: input
+    id: effort
+    attributes:
+      label: "Effort Estimate"
+      description: "Days or weeks for a single developer"
+
+  - type: textarea
+    id: depends-on
+    attributes:
+      label: "Depends On"
+      description: "List issue numbers this depends on. If none, say 'Nothing — can start immediately.'"
