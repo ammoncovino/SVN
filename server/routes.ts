@@ -2,99 +2,8 @@ import type { Express } from "express";
 import type { Server } from "http";
 import { storage } from "./storage";
 import type { AIScore } from "@shared/schema";
-
-// AI Scoring heuristic
-function generateAIScore(content: string): AIScore {
-  const lower = content.toLowerCase();
-  const words = lower.split(/\s+/);
-  const totalWords = words.length || 1;
-
-  // Logic markers
-  const logicMarkers = ["therefore", "because", "evidence", "proves", "demonstrates", "data shows", "research", "if...then", "consequently", "analysis", "measured", "calculated", "specifically", "according to", "statistically", "per capita", "cost", "costs", "percent", "structural", "structurally", "systemic"];
-  let logicCount = 0;
-  logicMarkers.forEach(m => {
-    const regex = new RegExp(m, 'gi');
-    const matches = lower.match(regex);
-    if (matches) logicCount += matches.length;
-  });
-
-  // Rhetoric markers
-  const rhetoricMarkers = ["believe", "always", "never", "everyone knows", "obviously", "clearly", "undeniably", "without question", "nobody can deny", "it's clear that", "we all know", "the truth is", "simply put", "make no mistake"];
-  let rhetoricCount = 0;
-  rhetoricMarkers.forEach(m => {
-    const regex = new RegExp(m, 'gi');
-    const matches = lower.match(regex);
-    if (matches) rhetoricCount += matches.length;
-  });
-
-  // Nostalgia markers
-  const nostalgiaMarkers = ["used to be", "good old days", "back when", "remember when", "things were better", "in my day", "once upon a time", "we used to", "before all this", "how it used to"];
-  let nostalgiaCount = 0;
-  nostalgiaMarkers.forEach(m => {
-    const regex = new RegExp(m, 'gi');
-    const matches = lower.match(regex);
-    if (matches) nostalgiaCount += matches.length;
-  });
-
-  // Emotional markers
-  const emotionalMarkers = ["feel", "feeling", "heart", "passion", "love", "hate", "fear", "angry", "disgusted", "horrified", "beautiful", "terrible", "wonderful", "devastating", "outraged", "heartbreaking"];
-  let emotionalCount = 0;
-  emotionalMarkers.forEach(m => {
-    const regex = new RegExp(`\\b${m}\\b`, 'gi');
-    const matches = lower.match(regex);
-    if (matches) emotionalCount += matches.length;
-  });
-
-  // Verifiability — questions, citations, numbers
-  const questionMarks = (content.match(/\?/g) || []).length;
-  const numbers = (content.match(/\d+/g) || []).length;
-  const citations = (lower.match(/\b(source|study|according|research|data|report|survey|census)\b/g) || []).length;
-  const verifiabilityRaw = (questionMarks * 0.5 + numbers * 1 + citations * 2);
-
-  // Scope — hedging (positive — appropriate scoping)
-  const scopeMarkers = ["might", "could", "perhaps", "in this context", "in this case", "specifically", "within", "limited to", "for this area", "locally", "in our community", "at this scale"];
-  let scopeCount = 0;
-  scopeMarkers.forEach(m => {
-    const regex = new RegExp(m, 'gi');
-    const matches = lower.match(regex);
-    if (matches) scopeCount += matches.length;
-  });
-
-  // Novelty — simple: longer, more specific content with unique words = more novel
-  const uniqueWords = new Set(words).size;
-  const noveltyRaw = (uniqueWords / totalWords) * 10;
-
-  // Normalize scores (0-10)
-  const normalize = (val: number, max: number) => Math.min(Math.round((val / max) * 10), 10);
-
-  const logic = normalize(logicCount, 5);
-  const rhetoric = normalize(rhetoricCount, 4);
-  const nostalgia = normalize(nostalgiaCount, 3);
-  const emotionalAppeal = normalize(emotionalCount, 4);
-  const verifiability = normalize(verifiabilityRaw, 8);
-  const scope = normalize(scopeCount, 4);
-  const novelty = Math.min(Math.round(noveltyRaw), 10);
-
-  // Assessment
-  let assessment = "";
-  if (logic > rhetoric && logic >= 5) {
-    assessment = "Strong logical foundation. This plant has deep roots — the reasoning holds structural weight. The claims are grounded and the evidence supports the conclusion.";
-  } else if (logic > rhetoric) {
-    assessment = "Moderate logical structure with room to grow. The reasoning shows promise but could benefit from more concrete evidence and data points.";
-  } else if (rhetoric > logic && rhetoric >= 5) {
-    assessment = "High rhetoric density detected. This plant relies heavily on persuasion mechanics rather than structural logic. Vulnerable to consumption by logic-based challenges.";
-  } else if (rhetoric > logic) {
-    assessment = "Some rhetorical patterns present. The argument leans on persuasion over evidence. Strengthening the logical framework would increase resilience.";
-  } else if (emotionalAppeal > 4) {
-    assessment = "Emotional appeal is dominant. While passion drives engagement, this plant needs structural reinforcement to survive logical scrutiny.";
-  } else if (nostalgia > 3) {
-    assessment = "Nostalgia-driven content detected. Appeals to how things 'used to be' without structural basis. Needs present-tense, evidence-based framing to survive.";
-  } else {
-    assessment = "Balanced content with no dominant signal pattern. The plant shows moderate structural integrity. Contributing joins and expansions would strengthen its root system.";
-  }
-
-  return { logic, rhetoric, nostalgia, emotionalAppeal, novelty, verifiability, scope, assessment };
-}
+import { scorePlant, evaluatePlant } from "./scoring/alpha-omega-lens";
+import { evaluationInputSchema } from "./scoring/schema";
 
 export async function registerRoutes(server: Server, app: Express) {
   // ===== USERS =====
@@ -131,7 +40,7 @@ export async function registerRoutes(server: Server, app: Express) {
     res.json(plant);
   });
 
-  app.post("/api/plants", (req, res) => {
+  app.post("/api/plants", async (req, res) => {
     const { userId, title, content, biome } = req.body;
 
     // Biome planting costs
@@ -142,8 +51,8 @@ export async function registerRoutes(server: Server, app: Express) {
     if (!user) return res.status(404).json({ message: "User not found" });
     if (user.energy < cost) return res.status(400).json({ message: "Not enough energy to plant in this biome" });
 
-    // Generate AI score
-    const aiScore = generateAIScore(content);
+    // Generate AI score — uses LLM (Alpha-Omega Lens) if OPENAI_API_KEY is set, heuristic fallback otherwise
+    const aiScore = await scorePlant(content, { plantType: "seed" });
 
     // Deduct energy from user
     storage.updateUserEnergy(userId, user.energy - cost);
@@ -176,7 +85,7 @@ export async function registerRoutes(server: Server, app: Express) {
     res.json(contribs);
   });
 
-  app.post("/api/contributions", (req, res) => {
+  app.post("/api/contributions", async (req, res) => {
     const { plantId, userId, content, type } = req.body;
 
     const user = storage.getUser(userId);
@@ -253,5 +162,47 @@ export async function registerRoutes(server: Server, app: Express) {
     const updatedPlant = storage.getPlant(plantId);
 
     res.json({ contribution, user: updatedUser, plant: updatedPlant });
+  });
+
+  // ===== ALPHA-OMEGA LENS EVALUATION =====
+
+  /**
+   * POST /api/evaluate
+   *
+   * Evaluate plant text using the Alpha-Omega Lens (LLM-powered).
+   * Returns the full structured evaluation with 7-dimension scores,
+   * assessment, rhetoric/logic markers, and consumability flag.
+   *
+   * Requires OPENAI_API_KEY to be set.
+   */
+  app.post("/api/evaluate", async (req, res) => {
+    try {
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(503).json({
+          message:
+            "Alpha-Omega Lens is not available. OPENAI_API_KEY is not configured. " +
+            "The proving grounds are using heuristic scoring as a fallback.",
+        });
+      }
+
+      const parseResult = evaluationInputSchema.safeParse(req.body);
+      if (!parseResult.success) {
+        return res.status(400).json({
+          message: "Invalid evaluation input",
+          errors: parseResult.error.flatten().fieldErrors,
+        });
+      }
+
+      const result = await evaluatePlant(parseResult.data);
+      res.json(result);
+    } catch (error) {
+      console.error("Evaluation failed:", error);
+      res.status(500).json({
+        message:
+          error instanceof Error
+            ? error.message
+            : "Alpha-Omega Lens evaluation failed unexpectedly",
+      });
+    }
   });
 }
