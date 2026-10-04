@@ -130,3 +130,21 @@ export class SqliteStorage implements IStorage {
 }
 
 export const storage = new SqliteStorage();
+
+// ===== Seed bookkeeping =====
+// A small key/value table that records which version of the live seed file the
+// database was seeded from, so a changed file can be re-seeded on startup.
+sqlite.exec(`CREATE TABLE IF NOT EXISTS svn_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)`);
+
+export function getMeta(key: string): string | undefined {
+  const row = sqlite.prepare("SELECT value FROM svn_meta WHERE key = ?").get(key) as { value: string } | undefined;
+  return row?.value;
+}
+
+export function setMeta(key: string, value: string): void {
+  sqlite.prepare("INSERT INTO svn_meta (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").run(key, value);
+}
+
+export function deletePlant(id: number): void {
+  sqlite.prepare("DELETE FROM plants WHERE id = ?").run(id);
+}
