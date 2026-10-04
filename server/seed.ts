@@ -1,33 +1,56 @@
-import { storage } from "./storage";
+import { createHash } from "crypto";
+import { storage, getMeta, setMeta, deletePlant } from "./storage";
 import { loadSeedPlants } from "./seed-plants";
 import { generateHeuristicScore } from "./scoring/alpha-omega-lens";
 
 export function seedDatabase() {
-  // Check if data already exists
-  const existingUsers = storage.getAllUsers();
-  if (existingUsers.length > 0) return;
-
   // Demo data (fictional users and plants) is for local development only.
-  if (process.env.SVN_DEMO_SEED === "true") return seedDemoData();
-  return seedProvingGrounds();
+  if (process.env.SVN_DEMO_SEED === "true") {
+    if (storage.getAllUsers().length === 0) seedDemoData();
+    return;
+  }
+  syncProvingGrounds();
 }
 
 /**
- * Seed the live Proving Grounds with the research-backed plants in
- * docs/seed-plants (plants 1-20), planted by a single steward account.
+ * Keep the live Proving Grounds in step with docs/seed-plants/live-plants.md.
+ * Runs on every startup. If the file is unchanged since the last seed, nothing
+ * happens. If it changed, the steward's seed plants are replaced with the
+ * file's plants, except any plant someone has already contributed to, which
+ * is always kept.
  */
-function seedProvingGrounds() {
+function syncProvingGrounds() {
   const plants = loadSeedPlants();
-  const steward = storage.createUser({
-    username: "svn_stewards",
-    email: "contact@ammoncovino.com",
-    tier: 1,
-    energy: 8,
-    createdAt: new Date().toISOString(),
-  });
+  const fingerprint = createHash("sha256").update(JSON.stringify(plants)).digest("hex");
+
+  const steward =
+    storage.getUserByUsername("svn_stewards") ??
+    storage.createUser({
+      username: "svn_stewards",
+      email: "contact@ammoncovino.com",
+      tier: 1,
+      energy: 8,
+      createdAt: new Date().toISOString(),
+    });
+
+  if (getMeta("live_seed_fingerprint") === fingerprint) return;
+
+  // Remove the steward's old seed plants, keeping any that people have joined.
+  const kept = new Set<string>();
+  let removed = 0;
+  for (const old of storage.getPlantsByUser(steward.id)) {
+    if (storage.getContributionsByPlant(old.id).length > 0) {
+      kept.add(old.title);
+    } else {
+      deletePlant(old.id);
+      removed++;
+    }
+  }
 
   const now = Date.now();
+  let added = 0;
   plants.forEach((p, idx) => {
+    if (kept.has(p.title)) return;
     const aiScore = generateHeuristicScore(p.content);
     storage.createPlant({
       userId: steward.id,
@@ -37,12 +60,14 @@ function seedProvingGrounds() {
       energy: 0,
       aiScore: JSON.stringify(aiScore),
       status: "growing",
-      // Keep plant order: plant 1 oldest, plant 20 newest.
+      // Keep file order: first plant oldest, last plant newest.
       createdAt: new Date(now - (plants.length - idx) * 60_000).toISOString(),
     });
+    added++;
   });
 
-  console.log(`Seeded Proving Grounds: ${plants.length} seed plants`);
+  setMeta("live_seed_fingerprint", fingerprint);
+  console.log(`Proving Grounds synced: ${added} added, ${removed} replaced, ${kept.size} kept (had contributions)`);
 }
 
 function seedDemoData() {

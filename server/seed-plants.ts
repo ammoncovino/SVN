@@ -8,7 +8,9 @@ export interface SeedPlant {
   content: string;
 }
 
-const SEED_FILES = ["README.md", "plants-11-20.md"];
+// The live Proving Grounds is seeded only from live-plants.md (short, plain posts).
+// The full research lives in README.md and plants-11-20.md; queued posts in queued-plants.md.
+export const SEED_FILES = ["live-plants.md"];
 
 function toBiome(label: string): SeedPlant["biome"] {
   const l = label.toLowerCase();
