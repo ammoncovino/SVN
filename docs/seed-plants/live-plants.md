@@ -22,3 +22,22 @@ The catch: it's paid for with public money, and it doesn't touch super PACs.
 Would you take $100 in vouchers to back the candidates you choose?
 
 *Full research and sources: docs/seed-plants/plants-11-20.md, Plant 11.*
+
+---
+
+## PLANT 21 — Biosphere
+### Does believing in God keep people humble? Researchers tested it.
+
+You hear it on TV: believe in a higher power and it keeps your pride in check, because you know you're not God.
+
+Here's what gets me. A check only works if it can overrule you. In 2009 researchers ran seven studies asking people what they believe and what they think God believes. People's picture of God's views matched their own more closely than their picture of anyone else's. When the researchers shifted someone's opinion on the death penalty, their idea of God's opinion moved with it. Their idea of other people's did not. Brain scans showed thinking about God's beliefs looked like thinking about your own.
+
+Why it matters: the standard that's supposed to stand outside you can end up being you, with more authority.
+
+The catch: believers have also been the ones who told kings no, from the prophet Nathan to the abolitionists. And a cause, a nation, or "the science" can be used the same way with no God involved.
+
+So here's the test for any standard: can it tell you no in a way you can't talk your way out of?
+
+Does yours?
+
+*Full research and sources: docs/seed-plants/research/21-higher-power-hubris.md.*
